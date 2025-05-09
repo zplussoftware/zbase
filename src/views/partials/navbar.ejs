@@ -1,0 +1,87 @@
+<!-- Top Navbar for Admin Pages -->
+<nav class="navbar navbar-expand-lg navbar-light bg-primary bg-opacity-75 sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white" href="/admin">ZBase Admin</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link text-white <%- activePage === 'admin' ? 'active' : '' %>" href="/admin">
+                        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link text-white dropdown-toggle <%- activePage === 'users' || activePage === 'roles' || activePage === 'permissions' || activePage === 'activity-logs' ? 'active' : '' %>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-shield-lock me-1"></i> Access Management
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item <%- activePage === 'users' ? 'active' : '' %>" href="/admin/users"><i class="bi bi-people me-1"></i> Users</a></li>
+                        <li><a class="dropdown-item <%- activePage === 'roles' ? 'active' : '' %>" href="/admin/roles"><i class="bi bi-shield-lock me-1"></i> Roles</a></li>
+                        <li><a class="dropdown-item <%- activePage === 'permissions' ? 'active' : '' %>" href="/admin/permissions"><i class="bi bi-key me-1"></i> Permissions</a></li>
+                        <li><a class="dropdown-item <%- activePage === 'activity-logs' ? 'active' : '' %>" href="/admin/activity-logs"><i class="bi bi-journal-text me-1"></i> Activity Logs</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white <%- activePage === 'settings' ? 'active' : '' %>" href="/admin/settings">
+                        <i class="bi bi-gear me-1"></i> Settings
+                    </a>
+                </li>
+            </ul>
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-2"></i>
+                    <span id="user-name">Admin</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-light dropdown-menu-end" aria-labelledby="user-dropdown">
+                    <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-1"></i> My Profile</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" id="logout-btn">Sign out</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Logout and Authentication Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set user name in navbar
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            document.getElementById('user-name').textContent = user.name;
+        }
+        
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Call the server-side logout API first
+            fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Then clear local storage
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                // Redirect to login page after successful logout
+                window.location.href = '/login';
+            })
+            .catch(error => {
+                console.error('Logout error:', error);
+                // Still clear local storage and redirect even if there's an error
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            });
+        });
+    });
+</script>

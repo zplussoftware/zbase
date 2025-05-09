@@ -20,6 +20,12 @@ export class User {
   @Column({ default: true })
   active: boolean;
 
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  avatarUrl: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -132,4 +132,125 @@ export class AuthService {
     
     return { message: 'Logout successful' };
   }
+
+  async updateProfile(userId: number, updateData: any) {
+    try {
+      // Get current user data for activity log
+      const currentUser = await this.userService.findOne(userId);
+      if (!currentUser) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Update user profile
+      const updatedUser = await this.userService.update(userId, {
+        name: updateData.name,
+        email: updateData.email,
+        phone: updateData.phone
+      });
+
+      // Log profile update activity
+      await this.activityLogService.create({
+        userId,
+        userName: currentUser.name,
+        action: 'PROFILE_UPDATE',
+        module: 'auth',
+        description: 'User updated their profile information',
+        details: {
+          oldData: {
+            name: currentUser.name,
+            email: currentUser.email,
+            phone: currentUser.phone || null
+          },
+          newData: {
+            name: updateData.name,
+            email: updateData.email,
+            phone: updateData.phone || null
+          }
+        }      });
+
+      if (!updatedUser) {
+        throw new Error('User not found or update failed');
+      }
+      
+      const { password, ...result } = updatedUser;
+      return result;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  }
+
+  async changePassword(userId: number, currentPassword: string, newPassword: string) {
+    try {
+      // Get user data
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Verify current password
+      const isValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isValid) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update user password
+      await this.userService.update(userId, { password: hashedPassword });
+
+      // Log password change activity
+      await this.activityLogService.create({
+        userId,
+        userName: user.name,
+        action: 'PASSWORD_CHANGE',
+        module: 'auth',
+        description: 'User changed their password'
+      });
+
+      return { success: true, message: 'Password updated successfully' };
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw error;
+    }
+  }
+
+  async updateAvatar(userId: number, avatarUrl: string) {
+    try {
+      // Get current user data for activity log
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Update user avatar
+      const updatedUser = await this.userService.update(userId, { avatarUrl });
+
+      // Log avatar update activity
+      await this.activityLogService.create({
+        userId,
+        userName: user.name,
+        action: 'AVATAR_UPDATE',
+        module: 'auth',
+        description: 'User updated their profile picture',
+        details: {
+          oldAvatar: user.avatarUrl || null,
+          newAvatar: avatarUrl
+        }      });
+
+      if (!updatedUser) {
+        throw new Error('User not found or update failed');
+      }
+
+      const { password, ...result } = updatedUser;
+      return { 
+        ...result,
+        avatarUrl 
+      };
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      throw error;
+    }
+  }
 }

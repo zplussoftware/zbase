@@ -1,4 +1,7 @@
-import { Controller, Post, Body, UseGuards, Get, Request, Response, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Request, Response, UnauthorizedException, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
@@ -87,13 +90,12 @@ export class AuthController {
   getProfile(@Request() req) {
     return req.user;
   }
-  
-  @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Request() req, @Response() res) {
     // Get the user information for logging
-    const userId = req.user.userId || req.user.sub;
-    const userName = req.user.name || req.user.email;
+    const userId = req.user?.userId || req.user?.sub;
+    const userName = req.user?.name || req.user?.email;
     
     // Log logout action
     await this.authService.logout(userId, userName);
@@ -101,5 +103,48 @@ export class AuthController {
     // Clear cookie
     res.clearCookie('jwt');
     return res.json({ message: 'Logout successful' });
+  }
+  @UseGuards(JwtAuthGuard)
+  @Put('profile')
+  async updateProfile(@Request() req, @Body() updateData: any) {
+    const userId = req.user?.userId || req.user?.sub;
+    const result = await this.authService.updateProfile(userId, updateData);
+    return result;
+  }
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(@Request() req, @Body() passwordData: {currentPassword: string, newPassword: string}) {
+    const userId = req.user?.userId || req.user?.sub;
+    const result = await this.authService.changePassword(userId, passwordData.currentPassword, passwordData.newPassword);
+    return result;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('avatar')
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({        destination: './src/public/uploads/avatars',
+        filename: (req: any, file, callback) => {
+          const userId = req.user?.userId || req.user?.sub || 'unknown';
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `user-${userId}-${uniqueSuffix}${ext}`);
+        }
+      }),
+      limits: {
+        fileSize: 1024 * 1024 * 5, // 5MB
+      },
+      fileFilter: (req, file, callback) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+          return callback(new Error('Only image files are allowed!'), false);
+        }
+        callback(null, true);
+      }
+    })
+  )  async uploadAvatar(@Request() req, @UploadedFile() file: Express.Multer.File) {
+    const userId = req.user?.userId || req.user?.sub;
+    const avatarUrl = `/static/uploads/avatars/${file.filename}`;
+    const result = await this.authService.updateAvatar(userId, avatarUrl);
+    return result;
   }
 }

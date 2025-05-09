@@ -97,7 +97,8 @@ export class ViewController {
     const user = this.getUserFromRequest(req);
     return {
       title: 'User Management - ZBase',
-      user
+      user,
+      path: '/admin/users'
     };
   }
 
@@ -109,7 +110,8 @@ export class ViewController {
     const user = this.getUserFromRequest(req);
     return {
       title: 'Role Management - ZBase',
-      user
+      user,
+      path: '/admin/roles'
     };
   }
 
@@ -121,7 +123,8 @@ export class ViewController {
     const user = this.getUserFromRequest(req);
     return {
       title: 'Permission Management - ZBase',
-      user
+      user,
+      path: '/admin/permissions'
     };
   }
 
@@ -135,7 +138,8 @@ export class ViewController {
     return {
       title: 'Edit User - ZBase',
       user,
-      userData
+      userData,
+      path: '/admin/users/edit'
     };
   }
 
@@ -147,10 +151,10 @@ export class ViewController {
     const user = this.getUserFromRequest(req);
     return {
       title: 'System Settings - ZBase',
-      user
+      user,
+      path: '/admin/settings'
     };
   }
-
   @Get('admin/activity-logs')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -159,7 +163,28 @@ export class ViewController {
     const user = this.getUserFromRequest(req);
     return {
       title: 'Activity Logs - ZBase',
-      user
+      user,
+      path: '/admin/activity-logs'
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  @Render('pages/profile')
+  async userProfile(@Request() req) {
+    const user = this.getUserFromRequest(req);
+    if (!user) {
+      return { redirect: '/login' };
+    }
+    
+    const profileData = await this.userService.findOne(user.userId);
+    
+    return {
+      title: 'My Profile - ZBase',
+      user,
+      profileData,
+      path: '/profile'
     };
   }
 }
+
