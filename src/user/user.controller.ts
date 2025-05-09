@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ActivityLogService } from '../activity-log/activity-log.service';
+import * as bcrypt from 'bcrypt';
 
 @Controller('api/users')
 export class UserController {
@@ -58,7 +59,6 @@ export class UserController {
       throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
     }
   }
-
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   async update(
@@ -71,8 +71,22 @@ export class UserController {
     if (!originalUser) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+
+    // Create a copy of the update DTO to modify
+    const updatedUserData = { ...updateUserDto };    // If password is included, hash it before update
+    if (updatedUserData.password) {
+      try {
+        console.log('Hashing password for user update:', +id);
+        const salt = await bcrypt.genSalt(10);
+        updatedUserData.password = await bcrypt.hash(updatedUserData.password, salt);
+        console.log('Password successfully hashed');
+      } catch (error) {
+        console.error('Error hashing password:', error);
+        throw new HttpException('Failed to process password update', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
     
-    const updatedUser = await this.userService.update(+id, updateUserDto);
+    const updatedUser = await this.userService.update(+id, updatedUserData);
     if (!updatedUser) {
       throw new HttpException('Failed to update user', HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, IsNull } from 'typeorm';
 import { User } from '../entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -40,8 +41,10 @@ export class UserService {
     const newUser = this.userRepository.create(user);
     return this.userRepository.save(newUser);
   }
-
   async update(id: number, userData: Partial<User>): Promise<User | null> {
+    // Password hashing should be handled at the controller level
+    // If already hashed, just use the data as it is
+    
     await this.userRepository.update(id, userData);
     return this.findOne(id);
   }
