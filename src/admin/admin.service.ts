@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
+import { RoleService } from '../role/role.service';
+import { PermissionService } from '../permission/permission.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly userService: UserService,
-    private readonly activityLogService: ActivityLogService
+    private readonly activityLogService: ActivityLogService,
+    private readonly roleService: RoleService,
+    private readonly permissionService: PermissionService
   ) {}
 
   async getStats() {
@@ -25,10 +29,12 @@ export class AdminService {
     const newUsersToday = recentUsers.filter(user => 
       new Date(user.createdAt) >= todayStart
     ).length;
+      // Count roles and permissions (mock data until we add these services)
+    const roles = await this.roleService.findAll();
+    const totalRoles = roles.length;
     
-    // Count roles and permissions (mock data until we add these services)
-    const totalRoles = 5; // Placeholder value
-    const totalPermissions = 25; // Placeholder value
+    const permissions = await this.permissionService.findAll();
+    const totalPermissions = permissions.length;
     
     return {
       totalUsers,

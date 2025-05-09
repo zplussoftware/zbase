@@ -240,14 +240,34 @@
             if (userData) {
                 const user = JSON.parse(userData);
                 document.getElementById('user-name').textContent = user.name;
-            }
-
-            // Logout functionality
+            }            // Logout functionality
             document.getElementById('logout-btn').addEventListener('click', function(e) {
                 e.preventDefault();
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login';
+                
+                // Call the server-side logout API first
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Then clear local storage
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    // Redirect to login page after successful logout
+                    window.location.href = '/login';
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    // Still clear local storage and redirect even if there's an error
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
+                });
             });
 
             // Refresh button functionality
