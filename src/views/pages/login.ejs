@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ZBase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6 col-lg-5 mx-auto">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="text-center font-weight-light my-2">Login</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="error-alert" class="alert alert-danger d-none"></div>
+                        <form id="login-form">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center py-3">
+                        <div class="small">
+                            Don't have an account? <a href="/register">Sign up!</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('login-form');
+            const errorAlert = document.getElementById('error-alert');
+
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                errorAlert.classList.add('d-none');
+                
+                try {
+                    // Try both login endpoints sequentially
+                    let response;
+                    let endpoint = '/api/auth/login';
+                    
+                    console.log('Trying to login with:', email);
+                    console.log('Using endpoint:', endpoint);
+                    
+                    response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Login failed');
+                    }
+                    
+                    // Log to browser console
+                    console.log('Login successful, token:', data.access_token);
+                    console.log('User data:', data.user);
+                    
+                    // Save token to localStorage
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Redirect based on role
+                    if (data.user.roles && data.user.roles.includes('admin')) {
+                        window.location.href = '/admin';
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    errorAlert.textContent = error.message;
+                    errorAlert.classList.remove('d-none');
+                    
+                    // Try the backup endpoint if the first one fails
+                    try {
+                        const backupEndpoint = '/api/auth/login-debug';
+                        console.log('Trying backup endpoint:', backupEndpoint);
+                        
+                        const backupResponse = await fetch(backupEndpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ email, password })
+                        });
+                        
+                        const backupData = await backupResponse.json();
+                        
+                        if (!backupResponse.ok) {
+                            throw new Error(backupData.message || 'Login failed');
+                        }
+                        
+                        console.log('Backup login successful');
+                        // Save token and redirect
+                        localStorage.setItem('token', backupData.access_token);
+                        localStorage.setItem('user', JSON.stringify(backupData.user));
+                        
+                        if (backupData.user.roles && backupData.user.roles.includes('admin')) {
+                            window.location.href = '/admin';
+                        } else {
+                            window.location.href = '/dashboard';
+                        }
+                    } catch (backupError) {
+                        console.error('Backup login also failed:', backupError);
+                        errorAlert.textContent = 'Login failed on both endpoints. Please check server logs.';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ZBase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-primary bg-opacity-75 sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white" href="/admin">ZBase Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active text-white" href="/admin">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/users">
+                            <i class="bi bi-people me-1"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/roles">
+                            <i class="bi bi-shield-lock me-1"></i> Roles
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/permissions">
+                            <i class="bi bi-key me-1"></i> Permissions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/activity-logs">
+                            <i class="bi bi-journal-text me-1"></i> Activity Logs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/settings">
+                            <i class="bi bi-gear me-1"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span id="user-name">Admin</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-light dropdown-menu-end" aria-labelledby="user-dropdown">
+                        <li><a class="dropdown-item" href="/admin">Dashboard</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="logout-btn">Sign out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <!-- Main content -->
+        <main class="px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Dashboard</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="refresh-btn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard stats -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card mb-4 shadow-sm bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Total Users</h6>
+                                    <h2 class="display-6 mb-0" id="total-users">0</h2>
+                                </div>
+                                <div class="icon-box">
+                                    <i class="bi bi-people-fill fs-1"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <a href="/admin/users" class="text-white text-decoration-none">View Details <i class="bi bi-arrow-right-circle"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card mb-4 shadow-sm bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Roles</h6>
+                                    <h2 class="display-6 mb-0" id="total-roles">0</h2>
+                                </div>
+                                <div class="icon-box">
+                                    <i class="bi bi-shield-fill fs-1"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <a href="/admin/roles" class="text-white text-decoration-none">Manage Roles <i class="bi bi-arrow-right-circle"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card mb-4 shadow-sm bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Permissions</h6>
+                                    <h2 class="display-6 mb-0" id="total-permissions">0</h2>
+                                </div>
+                                <div class="icon-box">
+                                    <i class="bi bi-key-fill fs-1"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <a href="/admin/permissions" class="text-white text-decoration-none">Manage Permissions <i class="bi bi-arrow-right-circle"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card mb-4 shadow-sm bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">New Users</h6>
+                                    <h2 class="display-6 mb-0" id="new-users-today">0</h2>
+                                </div>
+                                <div class="icon-box">
+                                    <i class="bi bi-person-plus-fill fs-1"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="text-white">Last 24 hours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tools -->
+            <h2 class="h4 mt-4 mb-3">Admin Tools</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">User Management</h5>
+                            <p class="card-text">Create, edit, delete users and assign roles.</p>
+                            <div class="d-grid">
+                                <a href="/admin/users" class="btn btn-primary">Manage Users</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Role Management</h5>
+                            <p class="card-text">Create and configure roles and their permissions.</p>
+                            <div class="d-grid">
+                                <a href="/admin/roles" class="btn btn-success">Manage Roles</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Permission Management</h5>
+                            <p class="card-text">Configure feature and controller permissions.</p>
+                            <div class="d-grid">
+                                <a href="/admin/permissions" class="btn btn-info text-white">Manage Permissions</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Activity Logging</h5>
+                            <p class="card-text">Track and monitor user activities across the system.</p>
+                            <div class="d-grid">
+                                <a href="/admin/activity-logs" class="btn btn-warning text-white">View Activity Logs</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent users -->
+            <h2 class="h4 mt-4 mb-3">Recent Users</h2>
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Roles</th>
+                            <th scope="col">Created At</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-users-table">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Kiểm tra auth ngay khi trang load, trước khi DOMContentLoaded
+        (function() {
+            const token = localStorage.getItem('token');
+            const userData = localStorage.getItem('user');
+            
+            if (!token || !userData) {
+                console.log('No authentication token found, redirecting to login');
+                window.location.href = '/login';
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userData);
+                if (!user.roles || !user.roles.includes('admin')) {
+                    console.log('User does not have admin role, redirecting to dashboard');
+                    window.location.href = '/dashboard';
+                    return;
+                }
+                
+                // Setup AJAX interceptor to attach token to all requests
+                (function setupAjaxInterceptor() {
+                    const originalFetch = window.fetch;
+                    window.fetch = function(url, options = {}) {
+                        // Không thêm token cho các request tới trang HTML
+                        if (url.endsWith('.html') || url.endsWith('.ejs') || 
+                            url === '/login' || url === '/admin' || url === '/dashboard') {
+                            return originalFetch(url, options);
+                        }
+                        
+                        // Clone options để không sửa đổi object ban đầu
+                        const newOptions = { ...options };
+                        newOptions.headers = newOptions.headers || {};
+                        
+                        // Thêm Authorization header với JWT token
+                        if (token && !newOptions.headers.Authorization) {
+                            newOptions.headers = {
+                                ...newOptions.headers,
+                                'Authorization': `Bearer ${token}`
+                            };
+                        }
+                        
+                        return originalFetch(url, newOptions);
+                    };
+                    console.log('HTTP interceptor set up to auto-attach JWT token');
+                })();
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+                return;
+            }
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in and has admin role
+            checkAuth();
+
+            // Set user name in sidebar
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                const user = JSON.parse(userData);
+                document.getElementById('user-name').textContent = user.name;
+            }
+
+            // Logout functionality
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            });
+
+            // Refresh button functionality
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                loadDashboardData();
+            });
+
+            // Load dashboard data
+            loadDashboardData();
+
+            // Auth check function
+            function checkAuth() {
+                const token = localStorage.getItem('token');
+                const userData = localStorage.getItem('user');
+                
+                if (!token || !userData) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const user = JSON.parse(userData);
+                if (!user.roles.includes('admin')) {
+                    alert('You do not have permission to access this page');
+                    window.location.href = '/dashboard';
+                }
+            }
+
+            // Load dashboard data function
+            async function loadDashboardData() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Authentication required');
+                    }
+
+                    // Get dashboard stats
+                    const statsResponse = await fetch('/api/admin/stats', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!statsResponse.ok) {
+                        throw new Error('Failed to fetch dashboard stats');
+                    }
+
+                    const stats = await statsResponse.json();
+                    
+                    // Update stats cards
+                    document.getElementById('total-users').textContent = stats.totalUsers || 0;
+                    document.getElementById('total-roles').textContent = stats.totalRoles || 0;
+                    document.getElementById('total-permissions').textContent = stats.totalPermissions || 0;
+                    document.getElementById('new-users-today').textContent = stats.newUsersToday || 0;
+
+                    // Fetch recent users
+                    const usersResponse = await fetch('/api/users', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!usersResponse.ok) {
+                        throw new Error('Failed to fetch users');
+                    }
+
+                    const users = await usersResponse.json();
+                    updateRecentUsers(users);
+                    
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                    alert('Failed to load dashboard data: ' + error.message);
+                }
+            }
+
+            // Update recent users table
+            function updateRecentUsers(users) {
+                const recentUsersTable = document.getElementById('recent-users-table');
+                recentUsersTable.innerHTML = '';
+                
+                if (!users || users.length === 0) {
+                    recentUsersTable.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center">No users found</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // Get latest 5 users
+                const recentUsers = [...users].sort((a, b) => 
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                ).slice(0, 5);
+                
+                recentUsers.forEach(user => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.roles.join(', ')}</td>
+                        <td>${new Date(user.createdAt).toLocaleString()}</td>
+                        <td>
+                            <a href="/admin/users/edit/${user.id}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger delete-user" data-id="${user.id}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    recentUsersTable.appendChild(row);
+                });
+                
+                // Add event listeners for delete buttons
+                document.querySelectorAll('.delete-user').forEach(button => {
+                    button.addEventListener('click', async function() {
+                        if (confirm('Are you sure you want to delete this user?')) {
+                            const userId = this.getAttribute('data-id');
+                            await deleteUser(userId);
+                        }
+                    });
+                });
+            }
+
+            // Delete user function
+            async function deleteUser(userId) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`/api/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to delete user');
+                    }
+                    
+                    alert('User deleted successfully');
+                    loadDashboardData();
+                    
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                    alert('Failed to delete user: ' + error.message);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

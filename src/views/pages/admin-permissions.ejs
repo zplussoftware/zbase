@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permission Management - ZBase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-primary bg-opacity-75 sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white" href="/admin">ZBase Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/users">
+                            <i class="bi bi-people me-1"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/roles">
+                            <i class="bi bi-shield-lock me-1"></i> Roles
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active text-white" href="/admin/permissions">
+                            <i class="bi bi-key me-1"></i> Permissions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/settings">
+                            <i class="bi bi-gear me-1"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span id="user-name">Admin</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-light dropdown-menu-end" aria-labelledby="user-dropdown">
+                        <li><a class="dropdown-item" href="/admin">Dashboard</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="logout-btn">Sign out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <!-- Main content -->
+        <main class="px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Permission Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="refresh-btn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPermissionModal">
+                        <i class="bi bi-plus-circle"></i> Add Permission
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs for different permission types -->
+            <ul class="nav nav-tabs mb-3" id="permissionTypeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="feature-tab" data-bs-toggle="tab" data-bs-target="#feature-permissions" type="button" role="tab" aria-controls="feature-permissions" aria-selected="true">Feature Permissions</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="controller-tab" data-bs-toggle="tab" data-bs-target="#controller-permissions" type="button" role="tab" aria-controls="controller-permissions" aria-selected="false">Controller Permissions</button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="permissionTypeContent">
+                <!-- Feature Permissions Tab -->
+                <div class="tab-pane fade show active" id="feature-permissions" role="tabpanel" aria-labelledby="feature-tab">
+                    <!-- Filter and Search -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="feature-search-input" placeholder="Search permissions...">
+                                <button class="btn btn-outline-secondary" type="button" id="feature-search-btn">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="feature-category-filter">
+                                <option value="">All Categories</option>
+                                <option value="user">User Management</option>
+                                <option value="role">Role Management</option>
+                                <option value="settings">System Settings</option>
+                                <option value="dashboard">Dashboard</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Feature Permissions Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Category</th>
+                                    <th scope="col">Description</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feature-permissions-table">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Controller Permissions Tab -->
+                <div class="tab-pane fade" id="controller-permissions" role="tabpanel" aria-labelledby="controller-tab">
+                    <!-- Filter and Search -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="controller-search-input" placeholder="Search controller permissions...">
+                                <button class="btn btn-outline-secondary" type="button" id="controller-search-btn">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="controller-filter">
+                                <option value="">All Controllers</option>
+                                <option value="user">User Controller</option>
+                                <option value="auth">Auth Controller</option>
+                                <option value="role">Role Controller</option>
+                                <option value="view">View Controller</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Controller Permissions Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Controller</th>
+                                    <th scope="col">Action</th>
+                                    <th scope="col">Route</th>
+                                    <th scope="col">Description</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="controller-permissions-table">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Feature Permission Modal -->
+    <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-labelledby="addPermissionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPermissionModalLabel">Add New Permission</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="add-permission-error" class="alert alert-danger d-none"></div>
+                    <form id="add-permission-form">
+                        <div class="mb-3">
+                            <label for="permission-type" class="form-label">Permission Type</label>
+                            <select class="form-select" id="permission-type" name="type" required>
+                                <option value="">Select Type</option>
+                                <option value="feature">Feature Permission</option>
+                                <option value="controller">Controller Permission</option>
+                            </select>
+                        </div>
+
+                        <!-- Feature Permission Fields -->
+                        <div id="feature-permission-fields" class="d-none">
+                            <div class="mb-3">
+                                <label for="feature-name" class="form-label">Permission Name</label>
+                                <input type="text" class="form-control" id="feature-name" name="name" placeholder="e.g., create-users">
+                            </div>
+                            <div class="mb-3">
+                                <label for="feature-category" class="form-label">Category</label>
+                                <select class="form-select" id="feature-category" name="category">
+                                    <option value="user">User Management</option>
+                                    <option value="role">Role Management</option>
+                                    <option value="settings">System Settings</option>
+                                    <option value="dashboard">Dashboard</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="feature-description" class="form-label">Description</label>
+                                <textarea class="form-control" id="feature-description" name="description" rows="2" placeholder="e.g., Allow user to create new users"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Controller Permission Fields -->
+                        <div id="controller-permission-fields" class="d-none">
+                            <div class="mb-3">
+                                <label for="controller-name" class="form-label">Controller</label>
+                                <select class="form-select" id="controller-name" name="controller">
+                                    <option value="user">User Controller</option>
+                                    <option value="auth">Auth Controller</option>
+                                    <option value="role">Role Controller</option>
+                                    <option value="view">View Controller</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="controller-action" class="form-label">Action</label>
+                                <input type="text" class="form-control" id="controller-action" name="action" placeholder="e.g., findAll">
+                            </div>
+                            <div class="mb-3">
+                                <label for="controller-route" class="form-label">Route</label>
+                                <input type="text" class="form-control" id="controller-route" name="route" placeholder="e.g., GET /api/users">
+                            </div>
+                            <div class="mb-3">
+                                <label for="controller-description" class="form-label">Description</label>
+                                <textarea class="form-control" id="controller-description" name="description" rows="2" placeholder="e.g., Get all users"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="add-permission-btn">Add Permission</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Permission Modal -->
+    <div class="modal fade" id="editPermissionModal" tabindex="-1" aria-labelledby="editPermissionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPermissionModalLabel">Edit Permission</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="edit-permission-error" class="alert alert-danger d-none"></div>
+                    <form id="edit-permission-form">
+                        <input type="hidden" id="edit-permission-id">
+                        <input type="hidden" id="edit-permission-type">
+
+                        <!-- Feature Permission Edit Fields -->
+                        <div id="edit-feature-permission-fields" class="d-none">
+                            <div class="mb-3">
+                                <label for="edit-feature-name" class="form-label">Permission Name</label>
+                                <input type="text" class="form-control" id="edit-feature-name" name="name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-feature-category" class="form-label">Category</label>
+                                <select class="form-select" id="edit-feature-category" name="category">
+                                    <option value="user">User Management</option>
+                                    <option value="role">Role Management</option>
+                                    <option value="settings">System Settings</option>
+                                    <option value="dashboard">Dashboard</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-feature-description" class="form-label">Description</label>
+                                <textarea class="form-control" id="edit-feature-description" name="description" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Controller Permission Edit Fields -->
+                        <div id="edit-controller-permission-fields" class="d-none">
+                            <div class="mb-3">
+                                <label for="edit-controller-name" class="form-label">Controller</label>
+                                <select class="form-select" id="edit-controller-name" name="controller">
+                                    <option value="user">User Controller</option>
+                                    <option value="auth">Auth Controller</option>
+                                    <option value="role">Role Controller</option>
+                                    <option value="view">View Controller</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-controller-action" class="form-label">Action</label>
+                                <input type="text" class="form-control" id="edit-controller-action" name="action">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-controller-route" class="form-label">Route</label>
+                                <input type="text" class="form-control" id="edit-controller-route" name="route">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-controller-description" class="form-label">Description</label>
+                                <textarea class="form-control" id="edit-controller-description" name="description" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="update-permission-btn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in and has admin role
+            checkAuth();
+
+            // Set user name in navbar
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                const user = JSON.parse(userData);
+                document.getElementById('user-name').textContent = user.name;
+            }
+
+            // Logout functionality
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            });
+
+            // Refresh button functionality
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                loadPermissions();
+            });
+
+            // Toggle permission fields based on type
+            document.getElementById('permission-type').addEventListener('change', function() {
+                const type = this.value;
+                const featureFields = document.getElementById('feature-permission-fields');
+                const controllerFields = document.getElementById('controller-permission-fields');
+                
+                if (type === 'feature') {
+                    featureFields.classList.remove('d-none');
+                    controllerFields.classList.add('d-none');
+                } else if (type === 'controller') {
+                    featureFields.classList.add('d-none');
+                    controllerFields.classList.remove('d-none');
+                } else {
+                    featureFields.classList.add('d-none');
+                    controllerFields.classList.add('d-none');
+                }
+            });
+
+            // Search and filter for feature permissions
+            document.getElementById('feature-search-btn').addEventListener('click', function() {
+                filterFeaturePermissions();
+            });
+
+            document.getElementById('feature-search-input').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    filterFeaturePermissions();
+                }
+            });
+
+            document.getElementById('feature-category-filter').addEventListener('change', function() {
+                filterFeaturePermissions();
+            });
+
+            // Search and filter for controller permissions
+            document.getElementById('controller-search-btn').addEventListener('click', function() {
+                filterControllerPermissions();
+            });
+
+            document.getElementById('controller-search-input').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    filterControllerPermissions();
+                }
+            });
+
+            document.getElementById('controller-filter').addEventListener('change', function() {
+                filterControllerPermissions();
+            });
+
+            // Add permission functionality
+            document.getElementById('add-permission-btn').addEventListener('click', async function() {
+                const typeSelect = document.getElementById('permission-type');
+                const errorAlert = document.getElementById('add-permission-error');
+                
+                // Validate form
+                if (!typeSelect.value) {
+                    errorAlert.textContent = 'Permission type is required';
+                    errorAlert.classList.remove('d-none');
+                    return;
+                }
+                
+                try {
+                    const token = localStorage.getItem('token');
+                    let permissionData;
+                    
+                    if (typeSelect.value === 'feature') {
+                        const nameInput = document.getElementById('feature-name');
+                        const categorySelect = document.getElementById('feature-category');
+                        const descriptionInput = document.getElementById('feature-description');
+                        
+                        if (!nameInput.value) {
+                            errorAlert.textContent = 'Permission name is required';
+                            errorAlert.classList.remove('d-none');
+                            return;
+                        }
+                        
+                        permissionData = {
+                            type: 'feature',
+                            name: nameInput.value,
+                            category: categorySelect.value,
+                            description: descriptionInput.value || ''
+                        };
+                    } else if (typeSelect.value === 'controller') {
+                        const controllerSelect = document.getElementById('controller-name');
+                        const actionInput = document.getElementById('controller-action');
+                        const routeInput = document.getElementById('controller-route');
+                        const descriptionInput = document.getElementById('controller-description');
+                        
+                        if (!actionInput.value || !routeInput.value) {
+                            errorAlert.textContent = 'Action and Route are required';
+                            errorAlert.classList.remove('d-none');
+                            return;
+                        }
+                        
+                        permissionData = {
+                            type: 'controller',
+                            controller: controllerSelect.value,
+                            action: actionInput.value,
+                            route: routeInput.value,
+                            description: descriptionInput.value || ''
+                        };
+                    }
+                    
+                    const response = await fetch('/api/permissions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(permissionData)
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.message || 'Failed to add permission');
+                    }
+
+                    // Close modal and reload data
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addPermissionModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    document.getElementById('add-permission-form').reset();
+                    document.getElementById('feature-permission-fields').classList.add('d-none');
+                    document.getElementById('controller-permission-fields').classList.add('d-none');
+                    errorAlert.classList.add('d-none');
+                    
+                    // Reload permissions
+                    loadPermissions();
+                    
+                    // Show success message
+                    alert('Permission added successfully');
+                    
+                } catch (error) {
+                    errorAlert.textContent = error.message;
+                    errorAlert.classList.remove('d-none');
+                }
+            });
+
+            // Update permission functionality
+            document.getElementById('update-permission-btn').addEventListener('click', async function() {
+                const permissionId = document.getElementById('edit-permission-id').value;
+                const permissionType = document.getElementById('edit-permission-type').value;
+                const errorAlert = document.getElementById('edit-permission-error');
+                
+                try {
+                    const token = localStorage.getItem('token');
+                    let permissionData;
+                    
+                    if (permissionType === 'feature') {
+                        const nameInput = document.getElementById('edit-feature-name');
+                        const categorySelect = document.getElementById('edit-feature-category');
+                        const descriptionInput = document.getElementById('edit-feature-description');
+                        
+                        if (!nameInput.value) {
+                            errorAlert.textContent = 'Permission name is required';
+                            errorAlert.classList.remove('d-none');
+                            return;
+                        }
+                        
+                        permissionData = {
+                            type: 'feature',
+                            name: nameInput.value,
+                            category: categorySelect.value,
+                            description: descriptionInput.value || ''
+                        };
+                    } else if (permissionType === 'controller') {
+                        const controllerSelect = document.getElementById('edit-controller-name');
+                        const actionInput = document.getElementById('edit-controller-action');
+                        const routeInput = document.getElementById('edit-controller-route');
+                        const descriptionInput = document.getElementById('edit-controller-description');
+                        
+                        if (!actionInput.value || !routeInput.value) {
+                            errorAlert.textContent = 'Action and Route are required';
+                            errorAlert.classList.remove('d-none');
+                            return;
+                        }
+                        
+                        permissionData = {
+                            type: 'controller',
+                            controller: controllerSelect.value,
+                            action: actionInput.value,
+                            route: routeInput.value,
+                            description: descriptionInput.value || ''
+                        };
+                    }
+                    
+                    const response = await fetch(`/api/permissions/${permissionId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(permissionData)
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.message || 'Failed to update permission');
+                    }
+
+                    // Close modal and reload data
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editPermissionModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    errorAlert.classList.add('d-none');
+                    
+                    // Reload permissions
+                    loadPermissions();
+                    
+                    // Show success message
+                    alert('Permission updated successfully');
+                    
+                } catch (error) {
+                    errorAlert.textContent = error.message;
+                    errorAlert.classList.remove('d-none');
+                }
+            });
+
+            // Auth check function
+            function checkAuth() {
+                const token = localStorage.getItem('token');
+                const userData = localStorage.getItem('user');
+                
+                if (!token || !userData) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const user = JSON.parse(userData);
+                if (!user.roles.includes('admin')) {
+                    alert('You do not have permission to access this page');
+                    window.location.href = '/dashboard';
+                }
+            }
+
+            // Variables to store permissions
+            let featurePermissions = [];
+            let controllerPermissions = [];
+
+            // Load permissions function
+            async function loadPermissions() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Authentication required');
+                    }
+
+                    const response = await fetch('/api/permissions', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch permissions');
+                    }
+
+                    const permissions = await response.json();
+                    
+                    // Separate permissions by type
+                    featurePermissions = permissions.filter(p => p.type === 'feature');
+                    controllerPermissions = permissions.filter(p => p.type === 'controller');
+                    
+                    // Update tables
+                    filterFeaturePermissions();
+                    filterControllerPermissions();
+                    
+                } catch (error) {
+                    console.error('Error loading permissions:', error);
+                    alert('Failed to load permissions: ' + error.message);
+                }
+            }
+
+            // Filter and display feature permissions
+            function filterFeaturePermissions() {
+                const searchValue = document.getElementById('feature-search-input').value.toLowerCase();
+                const categoryFilter = document.getElementById('feature-category-filter').value;
+                
+                // Apply filters
+                let filteredPermissions = featurePermissions.filter(perm => {
+                    // Search filter
+                    const matchesSearch = 
+                        perm.name.toLowerCase().includes(searchValue) || 
+                        perm.description?.toLowerCase().includes(searchValue);
+                    
+                    // Category filter
+                    const matchesCategory = categoryFilter ? 
+                        perm.category === categoryFilter : true;
+                    
+                    return matchesSearch && matchesCategory;
+                });
+                
+                // Update table
+                updateFeaturePermissionsTable(filteredPermissions);
+            }
+
+            // Filter and display controller permissions
+            function filterControllerPermissions() {
+                const searchValue = document.getElementById('controller-search-input').value.toLowerCase();
+                const controllerFilter = document.getElementById('controller-filter').value;
+                
+                // Apply filters
+                let filteredPermissions = controllerPermissions.filter(perm => {
+                    // Search filter
+                    const matchesSearch = 
+                        perm.controller.toLowerCase().includes(searchValue) || 
+                        perm.action.toLowerCase().includes(searchValue) ||
+                        perm.route.toLowerCase().includes(searchValue) ||
+                        perm.description?.toLowerCase().includes(searchValue);
+                    
+                    // Controller filter
+                    const matchesController = controllerFilter ? 
+                        perm.controller === controllerFilter : true;
+                    
+                    return matchesSearch && matchesController;
+                });
+                
+                // Update table
+                updateControllerPermissionsTable(filteredPermissions);
+            }
+
+            // Update feature permissions table
+            function updateFeaturePermissionsTable(permissions) {
+                const permissionsTable = document.getElementById('feature-permissions-table');
+                permissionsTable.innerHTML = '';
+                
+                if (permissions.length === 0) {
+                    permissionsTable.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center">No permissions found</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                permissions.forEach(perm => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${perm.id}</td>
+                        <td>${perm.name}</td>
+                        <td>${getCategoryLabel(perm.category)}</td>
+                        <td>${perm.description || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1 edit-feature-permission" data-id="${perm.id}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-permission" data-id="${perm.id}" data-type="feature">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    permissionsTable.appendChild(row);
+                });
+                
+                // Add event listeners for buttons
+                document.querySelectorAll('.edit-feature-permission').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const permId = this.getAttribute('data-id');
+                        openEditFeaturePermissionModal(permId);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-permission').forEach(button => {
+                    button.addEventListener('click', function() {
+                        if (confirm('Are you sure you want to delete this permission?')) {
+                            const permId = this.getAttribute('data-id');
+                            const permType = this.getAttribute('data-type');
+                            deletePermission(permId, permType);
+                        }
+                    });
+                });
+            }
+
+            // Update controller permissions table
+            function updateControllerPermissionsTable(permissions) {
+                const permissionsTable = document.getElementById('controller-permissions-table');
+                permissionsTable.innerHTML = '';
+                
+                if (permissions.length === 0) {
+                    permissionsTable.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center">No permissions found</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                permissions.forEach(perm => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${perm.id}</td>
+                        <td>${perm.controller}</td>
+                        <td>${perm.action}</td>
+                        <td><code>${perm.route}</code></td>
+                        <td>${perm.description || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1 edit-controller-permission" data-id="${perm.id}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-permission" data-id="${perm.id}" data-type="controller">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    permissionsTable.appendChild(row);
+                });
+                
+                // Add event listeners for buttons
+                document.querySelectorAll('.edit-controller-permission').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const permId = this.getAttribute('data-id');
+                        openEditControllerPermissionModal(permId);
+                    });
+                });
+            }
+
+            // Get category label
+            function getCategoryLabel(category) {
+                const categories = {
+                    'user': 'User Management',
+                    'role': 'Role Management',
+                    'settings': 'System Settings',
+                    'dashboard': 'Dashboard'
+                };
+                
+                return categories[category] || category;
+            }
+
+            // Open edit feature permission modal
+            function openEditFeaturePermissionModal(permId) {
+                const permission = featurePermissions.find(p => p.id === parseInt(permId));
+                if (!permission) return;
+                
+                document.getElementById('edit-permission-id').value = permission.id;
+                document.getElementById('edit-permission-type').value = 'feature';
+                document.getElementById('edit-feature-name').value = permission.name;
+                document.getElementById('edit-feature-category').value = permission.category;
+                document.getElementById('edit-feature-description').value = permission.description || '';
+                
+                document.getElementById('edit-feature-permission-fields').classList.remove('d-none');
+                document.getElementById('edit-controller-permission-fields').classList.add('d-none');
+                document.getElementById('edit-permission-error').classList.add('d-none');
+                
+                const editPermModal = new bootstrap.Modal(document.getElementById('editPermissionModal'));
+                editPermModal.show();
+            }
+
+            // Open edit controller permission modal
+            function openEditControllerPermissionModal(permId) {
+                const permission = controllerPermissions.find(p => p.id === parseInt(permId));
+                if (!permission) return;
+                
+                document.getElementById('edit-permission-id').value = permission.id;
+                document.getElementById('edit-permission-type').value = 'controller';
+                document.getElementById('edit-controller-name').value = permission.controller;
+                document.getElementById('edit-controller-action').value = permission.action;
+                document.getElementById('edit-controller-route').value = permission.route;
+                document.getElementById('edit-controller-description').value = permission.description || '';
+                
+                document.getElementById('edit-feature-permission-fields').classList.add('d-none');
+                document.getElementById('edit-controller-permission-fields').classList.remove('d-none');
+                document.getElementById('edit-permission-error').classList.add('d-none');
+                
+                const editPermModal = new bootstrap.Modal(document.getElementById('editPermissionModal'));
+                editPermModal.show();
+            }
+
+            // Delete permission
+            async function deletePermission(permId, permType) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`/api/permissions/${permId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to delete permission');
+                    }
+                    
+                    alert('Permission deleted successfully');
+                    loadPermissions();
+                    
+                } catch (error) {
+                    console.error('Error deleting permission:', error);
+                    alert('Failed to delete permission: ' + error.message);
+                }
+            }
+
+            // Initial data load
+            loadPermissions();
+        });
+    </script>
+</body>
+</html>
